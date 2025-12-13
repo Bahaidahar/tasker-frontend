@@ -7,9 +7,12 @@ import {
   CircularProgress,
   Alert,
   Snackbar,
+  AppBar,
+  Toolbar,
+  IconButton,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import { Add } from "@mui/icons-material";
+import { Add, Logout } from "@mui/icons-material";
 import { TaskCard } from "./TaskCard";
 import { TaskForm } from "./TaskForm";
 import { TaskFilters } from "./TaskFilters";
@@ -25,8 +28,10 @@ import type {
   TaskFormData,
   TaskFilters as TaskFiltersType,
 } from "../types/task";
+import { useAuth } from "../context/AuthContext";
 
 export function TaskList() {
+  const { user, logout } = useAuth();
   const [filters, setFilters] = useState<TaskFiltersType>({
     search: "",
     status: "",
@@ -109,27 +114,38 @@ export function TaskList() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 3,
-        }}
-      >
-        <Typography variant="h4" component="h1">
-          Task Tracker
-        </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<Add />}
-          onClick={handleOpenCreate}
+    <>
+      <AppBar position="static" sx={{ mb: 2 }}>
+        <Toolbar>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            Task Tracker
+          </Typography>
+          <Typography variant="body1" sx={{ mr: 2 }}>
+            {user?.name}
+          </Typography>
+          <IconButton color="inherit" onClick={logout} title="Logout">
+            <Logout />
+          </IconButton>
+        </Toolbar>
+      </AppBar>
+      <Container maxWidth="lg" sx={{ py: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "flex-end",
+            alignItems: "center",
+            mb: 3,
+          }}
         >
-          New Task
-        </Button>
-      </Box>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<Add />}
+            onClick={handleOpenCreate}
+          >
+            New Task
+          </Button>
+        </Box>
 
       <TaskFilters
         filters={filters}
@@ -174,20 +190,21 @@ export function TaskList() {
         isLoading={createMutation.isPending || updateMutation.isPending}
       />
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-      >
-        <Alert
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={4000}
           onClose={handleCloseSnackbar}
-          severity={snackbar.severity}
-          variant="filled"
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Container>
+          <Alert
+            onClose={handleCloseSnackbar}
+            severity={snackbar.severity}
+            variant="filled"
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      </Container>
+    </>
   );
 }

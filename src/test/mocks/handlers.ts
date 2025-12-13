@@ -1,5 +1,11 @@
 import { http, HttpResponse } from 'msw';
 import type { Task } from '../../types/task';
+import type { AuthResponse, LoginRequest, RegisterRequest } from '../../types/auth';
+
+// Mock user database
+const mockUsers = [
+  { email: 'test@example.com', password: 'password123', name: 'Test User' }
+];
 
 const mockTasks: Task[] = [
   {
@@ -98,5 +104,46 @@ export const handlers = [
 
   http.get('http://localhost:8080/api/tasks', () => {
     return HttpResponse.json(mockTasks);
+  }),
+
+  // Auth handlers
+  http.post('http://localhost:8080/api/auth/login', async ({ request }) => {
+    const body = await request.json() as LoginRequest;
+
+    const user = mockUsers.find(u => u.email === body.email && u.password === body.password);
+
+    if (!user) {
+      return HttpResponse.json(
+        { error: 'Invalid email or password' },
+        { status: 401 }
+      );
+    }
+
+    const response: AuthResponse = {
+      token: 'mock-jwt-token',
+      email: user.email,
+      name: user.name,
+    };
+    return HttpResponse.json(response);
+  }),
+
+  http.post('http://localhost:8080/api/auth/register', async ({ request }) => {
+    const body = await request.json() as RegisterRequest;
+
+    const existingUser = mockUsers.find(u => u.email === body.email);
+
+    if (existingUser) {
+      return HttpResponse.json(
+        { error: 'Email already exists' },
+        { status: 400 }
+      );
+    }
+
+    const response: AuthResponse = {
+      token: 'mock-jwt-token',
+      email: body.email,
+      name: body.name,
+    };
+    return HttpResponse.json(response, { status: 201 });
   }),
 ];
